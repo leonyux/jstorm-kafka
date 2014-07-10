@@ -35,10 +35,12 @@ public class ZkCoordinator implements PartitionCoordinator {
 
         ZkHosts brokerConf = (ZkHosts) spoutConfig.hosts;
         _refreshFreqMs = brokerConf.refreshFreqSecs * 1000;
+        //同样需要获取一个DynamicBrokerReader
         _reader = new DynamicBrokersReader(stormConf, brokerConf.brokerZkStr, brokerConf.brokerZkPath, spoutConfig.topic);
 
     }
 
+    //返回定时刷新的partitionmanager
     @Override
     public List<PartitionManager> getMyManagedPartitions() {
         if (_lastRefreshTime == null || (System.currentTimeMillis() - _lastRefreshTime) > _refreshFreqMs) {
