@@ -22,15 +22,15 @@ public class ZkState {
     private CuratorFramework newCurator(Map stateConf) throws Exception {
         Integer port = (Integer) stateConf.get(Config.TRANSACTIONAL_ZOOKEEPER_PORT);
         String serverPorts = "";
-        //»ñÈ¡¶ººÅ·Ö¸ôµÄzk½ÚµãºÍ¶Ë¿Ú×Ö·û´®
+        //è·å–é€—å·åˆ†éš”çš„zkèŠ‚ç‚¹å’Œç«¯å£å­—ç¬¦ä¸²
         for (String server : (List<String>) stateConf.get(Config.TRANSACTIONAL_ZOOKEEPER_SERVERS)) {
             serverPorts = serverPorts + server + ":" + port + ",";
         }
         return CuratorFrameworkFactory.newClient(serverPorts,
-        		//Ê¹ÓÃºÍstormÅäÖÃÒ»ÑùµÄzk session timeout»òÕßÄ¬ÈÏÖµ
+        		//ä½¿ç”¨å’Œstormé…ç½®ä¸€æ ·çš„zk session timeoutæˆ–è€…é»˜è®¤å€¼
                 Utils.getInt(stateConf.get(Config.STORM_ZOOKEEPER_SESSION_TIMEOUT)),
-                15000,//Á¬½Ó³¬Ê±Ê±¼ä15Ãë
-                //Á¬½ÓÊ§°ÜÖØÊÔ²ßÂÔ
+                15000,//è¿æ¥è¶…æ—¶æ—¶é—´15ç§’
+                //è¿æ¥å¤±è´¥é‡è¯•ç­–ç•¥
                 new RetryNTimes(Utils.getInt(stateConf.get(Config.STORM_ZOOKEEPER_RETRY_TIMES)),
                         Utils.getInt(stateConf.get(Config.STORM_ZOOKEEPER_RETRY_INTERVAL))));
     }

@@ -27,7 +27,7 @@ public class DynamicBrokersReader {
         _zkPath = zkPath;
         _topic = topic;
         try {
-        	//»ñÈ¡zk curator¿Í»§¶Ë
+        	//è·å–zk curatorå®¢æˆ·ç«¯
             _curator = CuratorFrameworkFactory.newClient(
                     zkStr,
                     Utils.getInt(conf.get(Config.STORM_ZOOKEEPER_SESSION_TIMEOUT)),
@@ -40,7 +40,7 @@ public class DynamicBrokersReader {
         }
     }
 
-    //»ñÈ¡topic¸÷partitionµÄleaderµÄÖ÷»ú¶Ë¿ÚĞÅÏ¢
+    //è·å–topicå„partitionçš„leaderçš„ä¸»æœºç«¯å£ä¿¡æ¯
     /**
      * Get all partitions with their current leaders
      */
@@ -49,7 +49,7 @@ public class DynamicBrokersReader {
         try {
             int numPartitionsForTopic = getNumPartitions();
             String brokerInfoPath = brokerPath();
-            //ÎªÃ¿¸öpartition»ñÈ¡LeaderÖ÷»úºÍ¶Ë¿ÚĞÅÏ¢
+            //ä¸ºæ¯ä¸ªpartitionè·å–Leaderä¸»æœºå’Œç«¯å£ä¿¡æ¯
             for (int partition = 0; partition < numPartitionsForTopic; partition++) {
                 int leader = getLeaderFor(partition);
                 String path = brokerInfoPath + "/" + leader;
@@ -69,7 +69,7 @@ public class DynamicBrokersReader {
     }
 
 
-    //»ñÈ¡±¾topicµÄpartitionÊı
+    //è·å–æœ¬topicçš„partitionæ•°
     private int getNumPartitions() {
         try {
             String topicBrokersPath = partitionPath();
@@ -80,17 +80,17 @@ public class DynamicBrokersReader {
         }
     }
 
-    //»ñÈ¡±¾topicµÄ·ÖÇøĞÅÏ¢Â·¾¶
+    //è·å–æœ¬topicçš„åˆ†åŒºä¿¡æ¯è·¯å¾„
     public String partitionPath() {
         return _zkPath + "/topics/" + _topic + "/partitions";
     }
 
-    //»ñÈ¡kafka broker½ÚµãĞÅÏ¢
+    //è·å–kafka brokerèŠ‚ç‚¹ä¿¡æ¯
     public String brokerPath() {
         return _zkPath + "/ids";
     }
 
-    //»ñÈ¡zkÖĞµÄ·ÖÇø×´Ì¬ĞÅÏ¢µÃµ½leader id
+    //è·å–zkä¸­çš„åˆ†åŒºçŠ¶æ€ä¿¡æ¯å¾—åˆ°leader id
     /**
      * get /brokers/topics/distributedTopic/partitions/1/state
      * { "controller_epoch":4, "isr":[ 1, 0 ], "leader":1, "leader_epoch":1, "version":1 }
@@ -114,7 +114,7 @@ public class DynamicBrokersReader {
         _curator.close();
     }
 
-    //½âÎözk·µ»ØµÄjsonĞÅÏ¢µÃµ½brokerµÄÖ÷»úºÍ¶Ë¿Ú
+    //è§£æzkè¿”å›çš„jsonä¿¡æ¯å¾—åˆ°brokerçš„ä¸»æœºå’Œç«¯å£
     /**
      * [zk: localhost:2181(CONNECTED) 56] get /brokers/ids/0
      * { "host":"localhost", "jmx_port":9999, "port":9092, "version":1 }

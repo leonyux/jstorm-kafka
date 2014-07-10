@@ -28,13 +28,13 @@ public class KafkaUtils {
     private static final int NO_OFFSET = -5;
 
 
-    //BrokerReaderÊÇ×öÊ²Ã´µÄ£¿
+    //BrokerReaderæ˜¯åšä»€ä¹ˆçš„ï¼Ÿ
     public static IBrokerReader makeBrokerReader(Map stormConf, KafkaConfig conf) {
         if (conf.hosts instanceof StaticHosts) {
-        	//¾²Ì¬µÄBrokerReader¹À¼ÆÊÇ¾²Ì¬Ö¸¶¨´ÓÄÄ¸öÖ÷»ú¶ÁÈ¡
+        	//é™æ€çš„BrokerReaderä¼°è®¡æ˜¯é™æ€æŒ‡å®šä»å“ªä¸ªä¸»æœºè¯»å–
             return new StaticBrokerReader(((StaticHosts) conf.hosts).getPartitionInformation());
         } else {
-        	//ZkBrokerReader´ÓZkÖĞ»ñÈ¡BrokerĞÅÏ¢
+        	//ZkBrokerReaderä»Zkä¸­è·å–Brokerä¿¡æ¯
             return new ZkBrokerReader(stormConf, conf.topic, (ZkHosts) conf.hosts);
         }
     }

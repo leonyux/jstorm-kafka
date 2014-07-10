@@ -12,7 +12,7 @@ import com.google.common.base.Objects;
  * Date: 14/05/2013
  * Time: 19:18
  */
-//Êµ¼ÊÉÏ¾ÍÊÇpartitionµ½brokerµÄÓ³Éä
+//å®žé™…ä¸Šå°±æ˜¯partitionåˆ°brokerçš„æ˜ å°„
 public class GlobalPartitionInformation implements Iterable<Partition>, Serializable {
 
     private Map<Integer, Broker> partitionMap;

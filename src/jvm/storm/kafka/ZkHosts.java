@@ -4,7 +4,7 @@ package storm.kafka;
  * Date: 11/05/2013
  * Time: 14:38
  */
-public class ZkHosts implements BrokerHosts {//ÓÃÓÚ±£´ækafkaÊ¹ÓÃzkµÄÏà¹ØĞÅÏ¢£¬½ÚµãºÍÂ·¾¶
+public class ZkHosts implements BrokerHosts {//ç”¨äºä¿å­˜kafkaä½¿ç”¨zkçš„ç›¸å…³ä¿¡æ¯ï¼ŒèŠ‚ç‚¹å’Œè·¯å¾„
     private static final String DEFAULT_ZK_PATH = "/brokers";
 
     public String brokerZkStr = null;

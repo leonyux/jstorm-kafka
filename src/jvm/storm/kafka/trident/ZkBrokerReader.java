@@ -20,17 +20,17 @@ public class ZkBrokerReader implements IBrokerReader {
     long refreshMillis;
 
     public ZkBrokerReader(Map conf, String topic, ZkHosts hosts) {
-    	//DynamicBrokerReaderÊÇÕæÕıµÄBrokerReader£¬ÓÃÀ´´ÓzkÖĞ»ñÈ¡topic¸÷partitionµÄbrokerÖ÷»úºÍ¶Ë¿Ú
+    	//DynamicBrokerReaderæ˜¯çœŸæ­£çš„BrokerReaderï¼Œç”¨æ¥ä»zkä¸­è·å–topicå„partitionçš„brokerä¸»æœºå’Œç«¯å£
         reader = new DynamicBrokersReader(conf, hosts.brokerZkStr, hosts.brokerZkPath, topic);
-        //»ñÈ¡¸÷partitionÓëbrokerµÄÓ³Éä
+        //è·å–å„partitionä¸brokerçš„æ˜ å°„
         cachedBrokers = reader.getBrokerInfo();
         lastRefreshTimeMs = System.currentTimeMillis();
-        //ZkHostÖĞĞ´ËÀµÄ¹Ì¶¨60Ãë
+        //ZkHostä¸­å†™æ­»çš„å›ºå®š60ç§’
         refreshMillis = hosts.refreshFreqSecs * 1000L;
 
     }
 
-    //·µ»Øpartitionµ½brokerµÄÓ³Éä£¬Ö»²»¹ıÓĞ³¬Ê±´ÓzkË¢ĞÂ£¬Èç¹ûÃ»³¬Ê±µ«ÊÇzkµÄĞÅÏ¢ÒÑ¾­ºÍ»º´æµÄ²»Í¬ÁË£¿
+    //è¿”å›partitionåˆ°brokerçš„æ˜ å°„ï¼Œåªä¸è¿‡æœ‰è¶…æ—¶ä»zkåˆ·æ–°ï¼Œå¦‚æœæ²¡è¶…æ—¶ä½†æ˜¯zkçš„ä¿¡æ¯å·²ç»å’Œç¼“å­˜çš„ä¸åŒäº†ï¼Ÿ
     @Override
     public GlobalPartitionInformation getCurrentBrokers() {
         long currTime = System.currentTimeMillis();

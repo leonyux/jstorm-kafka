@@ -35,17 +35,17 @@ public class KafkaSpout extends BaseRichSpout {
     public static final Logger LOG = LoggerFactory.getLogger(KafkaSpout.class);
 
     String _uuid = UUID.randomUUID().toString();
-    SpoutConfig _spoutConfig;//spoutĞèÒªÓÃµÄkafkaÅäÖÃĞÅÏ¢£¬Ö÷ÒªÊÇzkºÍtopicÏà¹Ø
+    SpoutConfig _spoutConfig;//spoutéœ€è¦ç”¨çš„kafkaé…ç½®ä¿¡æ¯ï¼Œä¸»è¦æ˜¯zkå’Œtopicç›¸å…³
     SpoutOutputCollector _collector;
-    PartitionCoordinator _coordinator;//Partition CoordinatorÊÇ×öÊ²Ã´µÄ
-    DynamicPartitionConnections _connections;//Dynamic Partition ConnectionÊÇ×öÊ²Ã´µÄ
-    ZkState _state;//·â×°µÄzkĞÅÏ¢ºÍ½Ó¿Ú
+    PartitionCoordinator _coordinator;//Partition Coordinatoræ˜¯åšä»€ä¹ˆçš„
+    DynamicPartitionConnections _connections;//Dynamic Partition Connectionæ˜¯åšä»€ä¹ˆçš„
+    ZkState _state;//å°è£…çš„zkä¿¡æ¯å’Œæ¥å£
 
     long _lastUpdateMs = 0;
 
     int _currPartitionIndex = 0;
 
-    public KafkaSpout(SpoutConfig spoutConf) {//¹¹½¨topology¹¹ÔìkafkaspoutÊ±ĞèÒªÌá¹©ÅäÖÃĞÅÏ¢
+    public KafkaSpout(SpoutConfig spoutConf) {//æ„å»ºtopologyæ„é€ kafkaspoutæ—¶éœ€è¦æä¾›é…ç½®ä¿¡æ¯
         _spoutConfig = spoutConf;
     }
 
@@ -55,29 +55,29 @@ public class KafkaSpout extends BaseRichSpout {
 
         Map stateConf = new HashMap(conf);
         List<String> zkServers = _spoutConfig.zkServers;
-        if (zkServers == null) {//Èç¹ûÃ»ÓĞ¶îÍâÅäÖÃ£¬ÈÏÎªkafkaºÍstorm¹«ÓÃÒ»¸özookeeper¼¯Èº
+        if (zkServers == null) {//å¦‚æœæ²¡æœ‰é¢å¤–é…ç½®ï¼Œè®¤ä¸ºkafkaå’Œstormå…¬ç”¨ä¸€ä¸ªzookeeperé›†ç¾¤
             zkServers = (List<String>) conf.get(Config.STORM_ZOOKEEPER_SERVERS);
         }
         Integer zkPort = _spoutConfig.zkPort;
-        if (zkPort == null) {//Èç¹ûÃ»ÓĞÏÔÊ¾µÄÖ¸¶¨¶Ë¿Ú£¬Ê¹ÓÃstormÅäÖÃÖĞµÄ¶Ë¿Ú»òÕßÄ¬ÈÏ¶Ë¿Ú
+        if (zkPort == null) {//å¦‚æœæ²¡æœ‰æ˜¾ç¤ºçš„æŒ‡å®šç«¯å£ï¼Œä½¿ç”¨stormé…ç½®ä¸­çš„ç«¯å£æˆ–è€…é»˜è®¤ç«¯å£
             zkPort = ((Number) conf.get(Config.STORM_ZOOKEEPER_PORT)).intValue();
         }
         
-        //½«»ñÈ¡µÄzk¶Ë¿ÚµÈ·ÅÖÃÔÚTRANSACTIONAL±äÁ¿ÖĞ£¬²»ÓëÔ­ÏÈµÄstormÅäÖÃ³åÍ»£¬µ«»á²»»áÓ°ÏìÆäËûÊ¹ÓÃÓÃÍ¾
+        //å°†è·å–çš„zkç«¯å£ç­‰æ”¾ç½®åœ¨TRANSACTIONALå˜é‡ä¸­ï¼Œä¸ä¸åŸå…ˆçš„stormé…ç½®å†²çªï¼Œä½†ä¼šä¸ä¼šå½±å“å…¶ä»–ä½¿ç”¨ç”¨é€”
         stateConf.put(Config.TRANSACTIONAL_ZOOKEEPER_SERVERS, zkServers);
         stateConf.put(Config.TRANSACTIONAL_ZOOKEEPER_PORT, zkPort);
         stateConf.put(Config.TRANSACTIONAL_ZOOKEEPER_ROOT, _spoutConfig.zkRoot);
         
-        //¸ù¾İÉÏÃæµÄÅäÖÃ´´½¨ZkState¶ÔÏó£¬Êµ¼ÊÉÏÊÇCuratorFrameworkÀàĞÍµÄzk¿Í»§¶Ë
+        //æ ¹æ®ä¸Šé¢çš„é…ç½®åˆ›å»ºZkStateå¯¹è±¡ï¼Œå®é™…ä¸Šæ˜¯CuratorFrameworkç±»å‹çš„zkå®¢æˆ·ç«¯
         _state = new ZkState(stateConf);
 
-        //DynamicPartitionConnectionsÖ÷ÒªÓÃÀ´±£´æSimpleConsumer¶ÔÏóÓÃÒÔÏòkafka»ñÈ¡Êı¾İ
+        //DynamicPartitionConnectionsä¸»è¦ç”¨æ¥ä¿å­˜SimpleConsumerå¯¹è±¡ç”¨ä»¥å‘kafkaè·å–æ•°æ®
         _connections = new DynamicPartitionConnections(_spoutConfig, KafkaUtils.makeBrokerReader(conf, _spoutConfig));
 
-        //»ñÈ¡topologyÖĞÓĞ¶àÉÙ¸öKafkaSpout
+        //è·å–topologyä¸­æœ‰å¤šå°‘ä¸ªKafkaSpout
         // using TransactionalState like this is a hack
         int totalTasks = context.getComponentTasks(context.getThisComponentId()).size();
-        //¸ù¾İ´«ÈëµÄÖ÷»úÀàĞÍ£¬»ñÈ¡Coordinator£¬CoordinatorÖ÷Òª×öÊ²Ã´¹¤×÷£¿
+        //æ ¹æ®ä¼ å…¥çš„ä¸»æœºç±»å‹ï¼Œè·å–Coordinatorï¼ŒCoordinatorä¸»è¦åšä»€ä¹ˆå·¥ä½œï¼Ÿ
         if (_spoutConfig.hosts instanceof StaticHosts) {
             _coordinator = new StaticCoordinator(_connections, conf, _spoutConfig, _state, context.getThisTaskIndex(), totalTasks, _uuid);
         } else {
