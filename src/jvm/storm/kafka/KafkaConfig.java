@@ -14,7 +14,7 @@ public class KafkaConfig implements Serializable {
     public int fetchSizeBytes = 1024 * 1024;
     public int socketTimeoutMs = 10000;
     public int bufferSizeBytes = 1024 * 1024;
-    public MultiScheme scheme = new RawMultiScheme();
+    public MultiScheme scheme = new RawMultiScheme();//这个scheme是做什么的
     public boolean forceFromStart = false;
     public long startOffsetTime = kafka.api.OffsetRequest.EarliestTime();
     public boolean useStartOffsetTimeIfOffsetOutOfRange = true;

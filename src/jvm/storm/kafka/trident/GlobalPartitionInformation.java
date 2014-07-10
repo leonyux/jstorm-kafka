@@ -12,6 +12,7 @@ import com.google.common.base.Objects;
  * Date: 14/05/2013
  * Time: 19:18
  */
+//实际上就是partition到broker的映射
 public class GlobalPartitionInformation implements Iterable<Partition>, Serializable {
 
     private Map<Integer, Broker> partitionMap;

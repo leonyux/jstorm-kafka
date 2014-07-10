@@ -28,10 +28,13 @@ public class KafkaUtils {
     private static final int NO_OFFSET = -5;
 
 
+    //BrokerReader是做什么的？
     public static IBrokerReader makeBrokerReader(Map stormConf, KafkaConfig conf) {
         if (conf.hosts instanceof StaticHosts) {
+        	//静态的BrokerReader估计是静态指定从哪个主机读取
             return new StaticBrokerReader(((StaticHosts) conf.hosts).getPartitionInformation());
         } else {
+        	//ZkBrokerReader从Zk中获取Broker信息
             return new ZkBrokerReader(stormConf, conf.topic, (ZkHosts) conf.hosts);
         }
     }

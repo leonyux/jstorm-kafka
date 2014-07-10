@@ -35,17 +35,17 @@ public class KafkaSpout extends BaseRichSpout {
     public static final Logger LOG = LoggerFactory.getLogger(KafkaSpout.class);
 
     String _uuid = UUID.randomUUID().toString();
-    SpoutConfig _spoutConfig;
+    SpoutConfig _spoutConfig;//spout需要用的kafka配置信息，主要是zk和topic相关
     SpoutOutputCollector _collector;
-    PartitionCoordinator _coordinator;
-    DynamicPartitionConnections _connections;
-    ZkState _state;
+    PartitionCoordinator _coordinator;//Partition Coordinator是做什么的
+    DynamicPartitionConnections _connections;//Dynamic Partition Connection是做什么的
+    ZkState _state;//封装的zk信息和接口
 
     long _lastUpdateMs = 0;
 
     int _currPartitionIndex = 0;
 
-    public KafkaSpout(SpoutConfig spoutConf) {
+    public KafkaSpout(SpoutConfig spoutConf) {//构建topology构造kafkaspout时需要提供配置信息
         _spoutConfig = spoutConf;
     }
 
@@ -55,22 +55,29 @@ public class KafkaSpout extends BaseRichSpout {
 
         Map stateConf = new HashMap(conf);
         List<String> zkServers = _spoutConfig.zkServers;
-        if (zkServers == null) {
+        if (zkServers == null) {//如果没有额外配置，认为kafka和storm公用一个zookeeper集群
             zkServers = (List<String>) conf.get(Config.STORM_ZOOKEEPER_SERVERS);
         }
         Integer zkPort = _spoutConfig.zkPort;
-        if (zkPort == null) {
+        if (zkPort == null) {//如果没有显示的指定端口，使用storm配置中的端口或者默认端口
             zkPort = ((Number) conf.get(Config.STORM_ZOOKEEPER_PORT)).intValue();
         }
+        
+        //将获取的zk端口等放置在TRANSACTIONAL变量中，不与原先的storm配置冲突，但会不会影响其他使用用途
         stateConf.put(Config.TRANSACTIONAL_ZOOKEEPER_SERVERS, zkServers);
         stateConf.put(Config.TRANSACTIONAL_ZOOKEEPER_PORT, zkPort);
         stateConf.put(Config.TRANSACTIONAL_ZOOKEEPER_ROOT, _spoutConfig.zkRoot);
+        
+        //根据上面的配置创建ZkState对象，实际上是CuratorFramework类型的zk客户端
         _state = new ZkState(stateConf);
 
+        //DynamicPartitionConnections主要用来保存SimpleConsumer对象用以向kafka获取数据
         _connections = new DynamicPartitionConnections(_spoutConfig, KafkaUtils.makeBrokerReader(conf, _spoutConfig));
 
+        //获取topology中有多少个KafkaSpout
         // using TransactionalState like this is a hack
         int totalTasks = context.getComponentTasks(context.getThisComponentId()).size();
+        //根据传入的主机类型，获取Coordinator，Coordinator主要做什么工作？
         if (_spoutConfig.hosts instanceof StaticHosts) {
             _coordinator = new StaticCoordinator(_connections, conf, _spoutConfig, _state, context.getThisTaskIndex(), totalTasks, _uuid);
         } else {

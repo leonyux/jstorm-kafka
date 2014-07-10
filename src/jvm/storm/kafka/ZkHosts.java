@@ -4,7 +4,7 @@ package storm.kafka;
  * Date: 11/05/2013
  * Time: 14:38
  */
-public class ZkHosts implements BrokerHosts {
+public class ZkHosts implements BrokerHosts {//用于保存kafka使用zk的相关信息，节点和路径
     private static final String DEFAULT_ZK_PATH = "/brokers";
 
     public String brokerZkStr = null;

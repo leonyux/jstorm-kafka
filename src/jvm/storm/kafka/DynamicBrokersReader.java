@@ -27,6 +27,7 @@ public class DynamicBrokersReader {
         _zkPath = zkPath;
         _topic = topic;
         try {
+        	//获取zk curator客户端
             _curator = CuratorFrameworkFactory.newClient(
                     zkStr,
                     Utils.getInt(conf.get(Config.STORM_ZOOKEEPER_SESSION_TIMEOUT)),
@@ -39,6 +40,7 @@ public class DynamicBrokersReader {
         }
     }
 
+    //获取topic各partition的leader的主机端口信息
     /**
      * Get all partitions with their current leaders
      */
@@ -47,6 +49,7 @@ public class DynamicBrokersReader {
         try {
             int numPartitionsForTopic = getNumPartitions();
             String brokerInfoPath = brokerPath();
+            //为每个partition获取Leader主机和端口信息
             for (int partition = 0; partition < numPartitionsForTopic; partition++) {
                 int leader = getLeaderFor(partition);
                 String path = brokerInfoPath + "/" + leader;
@@ -66,6 +69,7 @@ public class DynamicBrokersReader {
     }
 
 
+    //获取本topic的partition数
     private int getNumPartitions() {
         try {
             String topicBrokersPath = partitionPath();
@@ -76,14 +80,17 @@ public class DynamicBrokersReader {
         }
     }
 
+    //获取本topic的分区信息路径
     public String partitionPath() {
         return _zkPath + "/topics/" + _topic + "/partitions";
     }
 
+    //获取kafka broker节点信息
     public String brokerPath() {
         return _zkPath + "/ids";
     }
 
+    //获取zk中的分区状态信息得到leader id
     /**
      * get /brokers/topics/distributedTopic/partitions/1/state
      * { "controller_epoch":4, "isr":[ 1, 0 ], "leader":1, "leader_epoch":1, "version":1 }
@@ -107,6 +114,7 @@ public class DynamicBrokersReader {
         _curator.close();
     }
 
+    //解析zk返回的json信息得到broker的主机和端口
     /**
      * [zk: localhost:2181(CONNECTED) 56] get /brokers/ids/0
      * { "host":"localhost", "jmx_port":9999, "port":9092, "version":1 }

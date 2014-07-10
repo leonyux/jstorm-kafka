@@ -22,12 +22,15 @@ public class ZkState {
     private CuratorFramework newCurator(Map stateConf) throws Exception {
         Integer port = (Integer) stateConf.get(Config.TRANSACTIONAL_ZOOKEEPER_PORT);
         String serverPorts = "";
+        //获取逗号分隔的zk节点和端口字符串
         for (String server : (List<String>) stateConf.get(Config.TRANSACTIONAL_ZOOKEEPER_SERVERS)) {
             serverPorts = serverPorts + server + ":" + port + ",";
         }
         return CuratorFrameworkFactory.newClient(serverPorts,
+        		//使用和storm配置一样的zk session timeout或者默认值
                 Utils.getInt(stateConf.get(Config.STORM_ZOOKEEPER_SESSION_TIMEOUT)),
-                15000,
+                15000,//连接超时时间15秒
+                //连接失败重试策略
                 new RetryNTimes(Utils.getInt(stateConf.get(Config.STORM_ZOOKEEPER_RETRY_TIMES)),
                         Utils.getInt(stateConf.get(Config.STORM_ZOOKEEPER_RETRY_INTERVAL))));
     }
