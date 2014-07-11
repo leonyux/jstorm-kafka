@@ -26,12 +26,12 @@ public class ZkCoordinator implements PartitionCoordinator {
 
     public ZkCoordinator(DynamicPartitionConnections connections, Map stormConf, SpoutConfig spoutConfig, ZkState state, int taskIndex, int totalTasks, String topologyInstanceId) {
         _spoutConfig = spoutConfig;
-        _connections = connections;
-        _taskIndex = taskIndex;
-        _totalTasks = totalTasks;
-        _topologyInstanceId = topologyInstanceId;
+        _connections = connections;//管理与需要通信的各kafka主机的连接客户端
+        _taskIndex = taskIndex;//本kafkaspout task id
+        _totalTasks = totalTasks;//kafkaspout task数量
+        _topologyInstanceId = topologyInstanceId;//kafkaspout的uuid
         _stormConf = stormConf;
-        _state = state;
+        _state = state;//ZkStat，用来返回zk客户端
 
         ZkHosts brokerConf = (ZkHosts) spoutConfig.hosts;
         _refreshFreqMs = brokerConf.refreshFreqSecs * 1000;
@@ -56,6 +56,7 @@ public class ZkCoordinator implements PartitionCoordinator {
             GlobalPartitionInformation brokerInfo = _reader.getBrokerInfo();
             Set<Partition> mine = new HashSet();
             for (Partition partitionId : brokerInfo) {
+            	//判断本任务是否负责这个partition，一个partition仅能被一个kafkaspout处理
                 if (myOwnership(partitionId)) {
                     mine.add(partitionId);
                 }
@@ -63,19 +64,23 @@ public class ZkCoordinator implements PartitionCoordinator {
 
             Set<Partition> curr = _managers.keySet();
             Set<Partition> newPartitions = new HashSet<Partition>(mine);
+            //为什么要从新获取的partition中删除当前的partition？
             newPartitions.removeAll(curr);
 
+            //获取被删除的分区
             Set<Partition> deletedPartitions = new HashSet<Partition>(curr);
             deletedPartitions.removeAll(mine);
 
             LOG.info("Deleted partition managers: " + deletedPartitions.toString());
 
+            //关闭移除的partition的manager
             for (Partition id : deletedPartitions) {
                 PartitionManager man = _managers.remove(id);
                 man.close();
             }
             LOG.info("New partition managers: " + newPartitions.toString());
 
+            //为新增的partition构建partition manager，partition manger主要管理向broker获取数据的一些状态，最主要的是offset
             for (Partition id : newPartitions) {
                 PartitionManager man = new PartitionManager(_connections, _topologyInstanceId, _state, _stormConf, _spoutConfig, id);
                 _managers.put(id, man);
@@ -93,6 +98,7 @@ public class ZkCoordinator implements PartitionCoordinator {
         return _managers.get(partition);
     }
 
+    //根据这个算法映射partitions对spout的分配
     private boolean myOwnership(Partition id) {
         int val = Math.abs(id.host.hashCode() + 23 * id.partition);
         return val % _totalTasks == _taskIndex;

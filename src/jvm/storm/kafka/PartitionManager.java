@@ -37,9 +37,9 @@ public class PartitionManager {
         }
     }
 
-    Long _emittedToOffset;
+    Long _emittedToOffset;//已经发送的offset
     SortedSet<Long> _pending = new TreeSet<Long>();
-    Long _committedTo;
+    Long _committedTo;//已经写入zk代表完成发送的offset
     LinkedList<MessageAndRealOffset> _waitingToEmit = new LinkedList<MessageAndRealOffset>();
     Partition _partition;
     SpoutConfig _spoutConfig;
@@ -51,19 +51,19 @@ public class PartitionManager {
 
 
     public PartitionManager(DynamicPartitionConnections connections, String topologyInstanceId, ZkState state, Map stormConf, SpoutConfig spoutConfig, Partition id) {
-        _partition = id;
-        _connections = connections;
+        _partition = id;//本manager对应的partition
+        _connections = connections;//host到kafka客户端映射
         _spoutConfig = spoutConfig;
-        _topologyInstanceId = topologyInstanceId;
-        _consumer = connections.register(id.host, id.partition);
+        _topologyInstanceId = topologyInstanceId;//spout uuid
+        _consumer = connections.register(id.host, id.partition);//注册partition，如果没有建立连接建立连接
         _state = state;
         _stormConf = stormConf;
 
         String jsonTopologyId = null;
         Long jsonOffset = null;
-        String path = committedPath();
+        String path = committedPath();//获取zk中记录kafkaspout相关信息的路径
         try {
-            Map<Object, Object> json = _state.readJSON(path);
+            Map<Object, Object> json = _state.readJSON(path);//这个信息是哪个阶段被写入的？
             LOG.info("Read partition information from: " + path +  "  --> " + json );
             if (json != null) {
                 jsonTopologyId = (String) ((Map<Object, Object>) json.get("topology")).get("id");
@@ -73,13 +73,13 @@ public class PartitionManager {
             LOG.warn("Error reading and/or parsing at ZkNode: " + path, e);
         }
 
-        if (jsonTopologyId == null || jsonOffset == null) { // failed to parse JSON?
+        if (jsonTopologyId == null || jsonOffset == null) { // failed to parse JSON?第一次启动没有设置的时候？
             _committedTo = KafkaUtils.getOffset(_consumer, spoutConfig.topic, id.partition, spoutConfig);
             LOG.info("No partition information found, using configuration to determine offset");
-        } else if (!topologyInstanceId.equals(jsonTopologyId) && spoutConfig.forceFromStart) {
+        } else if (!topologyInstanceId.equals(jsonTopologyId) && spoutConfig.forceFromStart) {//或者Topology变化了且要求重头开始
             _committedTo = KafkaUtils.getOffset(_consumer, spoutConfig.topic, id.partition, spoutConfig.startOffsetTime);
             LOG.info("Topology change detected and reset from start forced, using configuration to determine offset");
-        } else {
+        } else {//否则使用上次的offset
             _committedTo = jsonOffset;
             LOG.info("Read last commit offset from zookeeper: " + _committedTo + "; old topology_id: " + jsonTopologyId + " - new topology_id: " + topologyInstanceId );
         }
@@ -87,6 +87,7 @@ public class PartitionManager {
         LOG.info("Starting Kafka " + _consumer.host() + ":" + id.partition + " from offset " + _committedTo);
         _emittedToOffset = _committedTo;
 
+        //一些度量，用来统计运行状态
         _fetchAPILatencyMax = new CombinedMetric(new MaxMetric());
         _fetchAPILatencyMean = new ReducedMetric(new MeanReducer());
         _fetchAPICallCount = new CountMetric();
@@ -112,13 +113,17 @@ public class PartitionManager {
             if (toEmit == null) {
                 return EmitState.NO_EMITTED;
             }
+            //对于kafka中的每条消息可以生成多个tuples
             Iterable<List<Object>> tups = KafkaUtils.generateTuples(_spoutConfig, toEmit.msg);
             if (tups != null) {
                 for (List<Object> tup : tups) {
+                	//输出tuple
                     collector.emit(tup, new KafkaMessageId(_partition, toEmit.offset));
                 }
+                //发送出一条kafka消息后便完成输出
                 break;
             } else {
+            	//如果从kafka消息中未能解析出tuple则直接确认该消息完成
                 ack(toEmit.offset);
             }
         }
@@ -130,6 +135,7 @@ public class PartitionManager {
     }
 
     private void fill() {
+    	//从kafka broker获取数据
         long start = System.nanoTime();
         ByteBufferMessageSet msgs = KafkaUtils.fetchMessages(_spoutConfig, _consumer, _partition, _emittedToOffset);
         long end = System.nanoTime();
@@ -144,7 +150,8 @@ public class PartitionManager {
             LOG.info("Fetched " + numMessages + " messages from Kafka: " + _consumer.host() + ":" + _partition.partition);
         }
         for (MessageAndOffset msg : msgs) {
-            _pending.add(_emittedToOffset);
+        	//对于每条读出的数据，将offset加入pending，把消息本身加入_waitingToEmit链表
+            _pending.add(_emittedToOffset);//表示已从kafka读出数据，等待spout ack被调用
             _waitingToEmit.add(new MessageAndRealOffset(msg.message(), _emittedToOffset));
             _emittedToOffset = msg.nextOffset();
         }
@@ -165,6 +172,7 @@ public class PartitionManager {
         _pending.remove(offset);
     }
 
+    //如果一个offset失败，则认为其后的offset全部失败，都需要重发
     public void fail(Long offset) {
         //TODO: should it use in-memory ack set to skip anything that's been acked but not committed???
         // things might get crazy with lots of timeouts

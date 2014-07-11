@@ -77,13 +77,15 @@ public class KafkaSpout extends BaseRichSpout {
         //获取topology中有多少个KafkaSpout
         // using TransactionalState like this is a hack
         int totalTasks = context.getComponentTasks(context.getThisComponentId()).size();
-        //根据传入的主机类型，获取Coordinator，Coordinator主要做什么工作？
+        //根据传入的主机类型，获取Coordinator，Coordinator主要做什么工作？负责维护本spout需要获取的partition及其对应主机，连接，还有partition manager用来
+        //管理offset
         if (_spoutConfig.hosts instanceof StaticHosts) {
             _coordinator = new StaticCoordinator(_connections, conf, _spoutConfig, _state, context.getThisTaskIndex(), totalTasks, _uuid);
         } else {
             _coordinator = new ZkCoordinator(_connections, conf, _spoutConfig, _state, context.getThisTaskIndex(), totalTasks, _uuid);
         }
 
+        //注册metric
         context.registerMetric("kafkaOffset", new IMetric() {
             KafkaUtils.KafkaOffsetMetric _kafkaOffsetMetric = new KafkaUtils.KafkaOffsetMetric(_spoutConfig.topic, _connections);
 
@@ -122,21 +124,25 @@ public class KafkaSpout extends BaseRichSpout {
 
     @Override
     public void nextTuple() {
+    	//获取本spout负责拉取信息的kafka partition
         List<PartitionManager> managers = _coordinator.getMyManagedPartitions();
         for (int i = 0; i < managers.size(); i++) {
 
-            // in case the number of managers decreased
+            // in case the number of managers decreased zkcoordinator刷新的时候会导致partitionmanger数量变化
             _currPartitionIndex = _currPartitionIndex % managers.size();
             EmitState state = managers.get(_currPartitionIndex).next(_collector);
+            //如果本分区没有更多需要emit，则选择下一分区
             if (state != EmitState.EMITTED_MORE_LEFT) {
                 _currPartitionIndex = (_currPartitionIndex + 1) % managers.size();
             }
+            //如果状态不为NO_EMITTED则终止循环，一次只从一个分区读数据
             if (state != EmitState.NO_EMITTED) {
                 break;
             }
         }
 
         long now = System.currentTimeMillis();
+        //如果超时，刷新zk信息
         if ((now - _lastUpdateMs) > _spoutConfig.stateUpdateIntervalMs) {
             commit();
         }

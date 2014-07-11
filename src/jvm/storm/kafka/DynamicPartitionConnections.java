@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-
+//用来管理与kafka各主机的连接客户端
 public class DynamicPartitionConnections {
 
     public static final Logger LOG = LoggerFactory.getLogger(DynamicPartitionConnections.class);
@@ -34,14 +34,17 @@ public class DynamicPartitionConnections {
     }
 
     public SimpleConsumer register(Partition partition) {
+    	//获取partition所在的broker主机和端口
         Broker broker = _reader.getCurrentBrokers().getBrokerFor(partition.partition);
         return register(broker, partition.partition);
     }
 
+    //为某partition构造存储ConnectionInfo
     public SimpleConsumer register(Broker host, int partition) {
         if (!_connections.containsKey(host)) {
             _connections.put(host, new ConnectionInfo(new SimpleConsumer(host.host, host.port, _config.socketTimeoutMs, _config.bufferSizeBytes, _config.clientId)));
         }
+        //为对应host的ConncetionInfo增加分区信息，分区信息中包含的就是主机涉及的所有分区信息以及对于该主机的kafka客户端
         ConnectionInfo info = _connections.get(host);
         info.partitions.add(partition);
         return info.consumer;

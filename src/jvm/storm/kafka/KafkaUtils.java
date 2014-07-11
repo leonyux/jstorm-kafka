@@ -40,6 +40,7 @@ public class KafkaUtils {
     }
 
 
+    //获取当前起始的offset
     public static long getOffset(SimpleConsumer consumer, String topic, int partition, KafkaConfig config) {
         long startOffsetTime = kafka.api.OffsetRequest.LatestTime();
         if ( config.forceFromStart ) {
@@ -48,6 +49,7 @@ public class KafkaUtils {
         return getOffset(consumer, topic, partition, startOffsetTime);
     }
 
+    //获取当前起始offset，用到了一些kafka api，参考https://cwiki.apache.org/confluence/display/KAFKA/0.8.0+SimpleConsumer+Example
     public static long getOffset(SimpleConsumer consumer, String topic, int partition, long startOffsetTime) {
         TopicAndPartition topicAndPartition = new TopicAndPartition(topic, partition);
         Map<TopicAndPartition, PartitionOffsetRequestInfo> requestInfo = new HashMap<TopicAndPartition, PartitionOffsetRequestInfo>();
