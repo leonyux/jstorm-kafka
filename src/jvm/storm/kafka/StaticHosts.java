@@ -7,13 +7,13 @@ import storm.kafka.trident.GlobalPartitionInformation;
  */
 public class StaticHosts implements BrokerHosts {
 
-	private GlobalPartitionInformation partitionInformation;
+    private GlobalPartitionInformation partitionInformation;
 
-	public StaticHosts(GlobalPartitionInformation partitionInformation) {
-		this.partitionInformation = partitionInformation;
-	}
+    public StaticHosts(GlobalPartitionInformation partitionInformation) {
+        this.partitionInformation = partitionInformation;
+    }
 
-	public GlobalPartitionInformation getPartitionInformation() {
-		return partitionInformation;
-	}
+    public GlobalPartitionInformation getPartitionInformation() {
+        return partitionInformation;
+    }
 }
