@@ -2,7 +2,7 @@ package storm.kafka.trident;
 
 public interface IBrokerReader {
 
-	GlobalPartitionInformation getCurrentBrokers();
+    GlobalPartitionInformation getCurrentBrokers();
 
-	void close();
+    void close();
 }
