@@ -157,11 +157,7 @@ public class PartitionManager {
     private void fill() {
         // 从kafka broker获取数据
         long start = System.nanoTime();
-<<<<<<< HEAD
         synchronized (_emittedToOffsetLock) {// 多线程下_pending和_emittedToOffset一致
-=======
-        synchronized (_emittedToOffsetLock) {
->>>>>>> a3762110874c107777565d662f91bc56d5619dc4
             ByteBufferMessageSet msgs = KafkaUtils.fetchMessages(_spoutConfig,
                     _consumer, _partition, _emittedToOffset);
             long end = System.nanoTime();
@@ -209,11 +205,7 @@ public class PartitionManager {
         // TODO: should it use in-memory ack set to skip anything that's been
         // acked but not committed???
         // things might get crazy with lots of timeouts
-<<<<<<< HEAD
         synchronized (_emittedToOffsetLock) {// 多线程下_pending和_emittedToOffset一致
-=======
-        synchronized (_emittedToOffsetLock) {
->>>>>>> a3762110874c107777565d662f91bc56d5619dc4
             if (_emittedToOffset > offset) {
                 _emittedToOffset = offset;
                 _pending.tailSet(offset).clear();
@@ -264,11 +256,7 @@ public class PartitionManager {
     }
 
     public long lastCompletedOffset() {
-<<<<<<< HEAD
         synchronized (_emittedToOffsetLock) {// 多线程下_pending和_emittedToOffset一致
-=======
-        synchronized (_emittedToOffsetLock) {
->>>>>>> a3762110874c107777565d662f91bc56d5619dc4
             if (_pending.isEmpty()) {
                 return _emittedToOffset;
             } else {
