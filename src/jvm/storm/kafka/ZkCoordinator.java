@@ -67,32 +67,34 @@ public class ZkCoordinator implements PartitionCoordinator {
 				}
 			}
 
-			Set<Partition> curr = _managers.keySet();
-			Set<Partition> newPartitions = new HashSet<Partition>(mine);
-			// 为什么要从新获取的partition中删除当前的partition？
-			newPartitions.removeAll(curr);
+			synchronized (_managers) {// 锁定_manager结构，在jstorm下支持nextTuple和ack、fail的并发
+				Set<Partition> curr = _managers.keySet();
+				Set<Partition> newPartitions = new HashSet<Partition>(mine);
+				// 为什么要从新获取的partition中删除当前的partition？
+				newPartitions.removeAll(curr);
 
-			// 获取被删除的分区
-			Set<Partition> deletedPartitions = new HashSet<Partition>(curr);
-			deletedPartitions.removeAll(mine);
+				// 获取被删除的分区
+				Set<Partition> deletedPartitions = new HashSet<Partition>(curr);
+				deletedPartitions.removeAll(mine);
 
-			LOG.info("Deleted partition managers: "
-					+ deletedPartitions.toString());
+				LOG.info("Deleted partition managers: "
+						+ deletedPartitions.toString());
 
-			// 关闭移除的partition的manager
-			for (Partition id : deletedPartitions) {
-				PartitionManager man = _managers.remove(id);
-				man.close();
-			}
-			LOG.info("New partition managers: " + newPartitions.toString());
+				// 关闭移除的partition的manager
+				for (Partition id : deletedPartitions) {
+					PartitionManager man = _managers.remove(id);
+					man.close();
+				}
+				LOG.info("New partition managers: " + newPartitions.toString());
 
-			// 为新增的partition构建partition manager，partition
-			// manger主要管理向broker获取数据的一些状态，最主要的是offset
-			for (Partition id : newPartitions) {
-				PartitionManager man = new PartitionManager(_connections,
-						_topologyInstanceId, _state, _stormConf, _spoutConfig,
-						id);
-				_managers.put(id, man);
+				// 为新增的partition构建partition manager，partition
+				// manger主要管理向broker获取数据的一些状态，最主要的是offset
+				for (Partition id : newPartitions) {
+					PartitionManager man = new PartitionManager(_connections,
+							_topologyInstanceId, _state, _stormConf,
+							_spoutConfig, id);
+					_managers.put(id, man);
+				}
 			}
 
 		} catch (Exception e) {
@@ -104,7 +106,9 @@ public class ZkCoordinator implements PartitionCoordinator {
 
 	@Override
 	public PartitionManager getManager(Partition partition) {
-		return _managers.get(partition);
+		synchronized (_managers) {// 锁定_manager结构，在jstorm下支持nextTuple和ack、fail的并发
+			return _managers.get(partition);
+		}
 	}
 
 	// 根据这个算法映射partitions对spout的分配

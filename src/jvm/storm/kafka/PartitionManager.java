@@ -39,7 +39,10 @@ public class PartitionManager {
 	}
 
 	Long _emittedToOffset;// 已经发送的offset
-	SortedSet<Long> _pending = new TreeSet<Long>();
+	Object _emittedToOffsetLock = new Object();// 使用synchronized
+												// statment锁定_emittedToOffset和_pending的对应关系
+	SortedSet<Long> _pending = Collections
+			.synchronizedSortedSet(new TreeSet<Long>());// _pending的并发访问，未对其做外部同步
 	Long _committedTo;// 已经写入zk代表完成发送的offset
 	LinkedList<MessageAndRealOffset> _waitingToEmit = new LinkedList<MessageAndRealOffset>();
 	Partition _partition;
@@ -154,31 +157,34 @@ public class PartitionManager {
 	private void fill() {
 		// 从kafka broker获取数据
 		long start = System.nanoTime();
-		ByteBufferMessageSet msgs = KafkaUtils.fetchMessages(_spoutConfig,
-				_consumer, _partition, _emittedToOffset);
-		long end = System.nanoTime();
-		long millis = (end - start) / 1000000;
-		_fetchAPILatencyMax.update(millis);
-		_fetchAPILatencyMean.update(millis);
-		_fetchAPICallCount.incr();
-		int numMessages = countMessages(msgs);
-		_fetchAPIMessageCount.incrBy(numMessages);
+		synchronized (_emittedToOffsetLock) {
+			ByteBufferMessageSet msgs = KafkaUtils.fetchMessages(_spoutConfig,
+					_consumer, _partition, _emittedToOffset);
+			long end = System.nanoTime();
+			long millis = (end - start) / 1000000;
+			_fetchAPILatencyMax.update(millis);
+			_fetchAPILatencyMean.update(millis);
+			_fetchAPICallCount.incr();
+			int numMessages = countMessages(msgs);
+			_fetchAPIMessageCount.incrBy(numMessages);
 
-		if (numMessages > 0) {
-			LOG.info("Fetched " + numMessages + " messages from Kafka: "
-					+ _consumer.host() + ":" + _partition.partition);
-		}
-		for (MessageAndOffset msg : msgs) {
-			// 对于每条读出的数据，将offset加入pending，把消息本身加入_waitingToEmit链表
-			_pending.add(_emittedToOffset);// 表示已从kafka读出数据，等待spout ack被调用
-			_waitingToEmit.add(new MessageAndRealOffset(msg.message(),
-					_emittedToOffset));
-			_emittedToOffset = msg.nextOffset();
-		}
-		if (numMessages > 0) {
-			LOG.info("Added " + numMessages + " messages from Kafka: "
-					+ _consumer.host() + ":" + _partition.partition
-					+ " to internal buffers");
+			if (numMessages > 0) {
+				LOG.info("Fetched " + numMessages + " messages from Kafka: "
+						+ _consumer.host() + ":" + _partition.partition);
+			}
+			for (MessageAndOffset msg : msgs) {
+				// 对于每条读出的数据，将offset加入pending，把消息本身加入_waitingToEmit链表
+				_pending.add(_emittedToOffset);// 表示已从kafka读出数据，等待spout ack被调用
+				_waitingToEmit.add(new MessageAndRealOffset(msg.message(),
+						_emittedToOffset));
+				_emittedToOffset = msg.nextOffset();
+			}
+
+			if (numMessages > 0) {
+				LOG.info("Added " + numMessages + " messages from Kafka: "
+						+ _consumer.host() + ":" + _partition.partition
+						+ " to internal buffers");
+			}
 		}
 	}
 
@@ -199,20 +205,19 @@ public class PartitionManager {
 		// TODO: should it use in-memory ack set to skip anything that's been
 		// acked but not committed???
 		// things might get crazy with lots of timeouts
-		if (_emittedToOffset > offset) {
-			_emittedToOffset = offset;
-			_pending.tailSet(offset).clear();
+		synchronized (_emittedToOffsetLock) {
+			if (_emittedToOffset > offset) {
+				_emittedToOffset = offset;
+				_pending.tailSet(offset).clear();
+			}
 		}
 	}
 
 	public void commit() {
 		LOG.info("Committing offset for " + _partition);
 		long committedTo;
-		if (_pending.isEmpty()) {
-			committedTo = _emittedToOffset;
-		} else {
-			committedTo = _pending.first();
-		}
+		committedTo = lastCompletedOffset();// 调用此函数和原代码一样功能，synchronized
+											// statement保护_pending和_emittedToOffset一致
 		if (committedTo != _committedTo) {
 			LOG.info("Writing committed offset to ZK: " + committedTo);
 
@@ -251,10 +256,12 @@ public class PartitionManager {
 	}
 
 	public long lastCompletedOffset() {
-		if (_pending.isEmpty()) {
-			return _emittedToOffset;
-		} else {
-			return _pending.first();
+		synchronized (_emittedToOffsetLock) {
+			if (_pending.isEmpty()) {
+				return _emittedToOffset;
+			} else {
+				return _pending.first();
+			}
 		}
 	}
 
