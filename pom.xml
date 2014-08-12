@@ -24,6 +24,7 @@
 		<developerConnection>scm:git:ssh://git@github.com/wurstmeister/storm-kafka-0.8-plus.git</developerConnection> 
 		<url>https://github.com/wurstmeister/storm-kafka-0.8-plus</url> </scm> -->
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<scalaVersion>2.9.2</scalaVersion>
 		<kafkaArtifact>kafka_2.9.2</kafkaArtifact>
 		<curatorVersion>1.1.15</curatorVersion>
