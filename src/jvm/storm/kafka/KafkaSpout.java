@@ -35,7 +35,8 @@ public class KafkaSpout extends BaseRichSpout {
     String _uuid = UUID.randomUUID().toString();
     SpoutConfig _spoutConfig;// spout需要用的kafka配置信息，主要是zk和topic相关
     SpoutOutputCollector _collector;
-    PartitionCoordinator _coordinator;// Partition Coordinator是做什么的
+    PartitionCoordinator _coordinator;// Partition Coordinator协调不
+                                      //同的spout向不同的kafka partion取数据
     DynamicPartitionConnections _connections;// Dynamic Partition
                                              // Connection是做什么的
     ZkState _state;// 封装的zk信息和接口
