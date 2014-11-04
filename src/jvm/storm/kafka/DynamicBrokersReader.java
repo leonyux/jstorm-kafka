@@ -28,7 +28,7 @@ public class DynamicBrokersReader {
             String topic) {
         _zkPath = zkPath;
         _topic = topic;
-        try {
+//        try {
             // 获取zk curator客户端
             _curator = CuratorFrameworkFactory
                     .newClient(
@@ -42,9 +42,9 @@ public class DynamicBrokersReader {
                                     Utils.getInt(conf
                                             .get(Config.STORM_ZOOKEEPER_RETRY_INTERVAL))));
             _curator.start();
-        } catch (IOException ex) {
-            LOG.error("can't connect to zookeeper");
-        }
+//        } catch (IOException ex) {
+//            LOG.error("can't connect to zookeeper");
+//        }
     }
 
     // 获取topic各partition的leader的主机端口信息
