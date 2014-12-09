@@ -1,17 +1,15 @@
 package storm.kafka;
 
 import backtype.storm.task.IMetricsContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import storm.kafka.trident.GlobalPartitionInformation;
 
 import java.util.*;
 
-public class ZkCoordinator implements PartitionCoordinator {
+public class ZkCoordinatorLocal implements PartitionCoordinator {
     public static final Logger LOG = LoggerFactory
-            .getLogger(ZkCoordinator.class);
+            .getLogger(ZkCoordinatorLocal.class);
 
     SpoutConfig _spoutConfig;
     int _taskIndex;
@@ -23,13 +21,14 @@ public class ZkCoordinator implements PartitionCoordinator {
     int _refreshFreqMs;
     DynamicPartitionConnections _connections;
     DynamicBrokersReader _reader;
+    DynamicSupervisorReader _sreader;
     ZkState _state;
     Map _stormConf;
     IMetricsContext _metricsContext;
 
-    public ZkCoordinator(DynamicPartitionConnections connections,
+    public ZkCoordinatorLocal(DynamicPartitionConnections connections,
             Map stormConf, SpoutConfig spoutConfig, ZkState state,
-            int taskIndex, int totalTasks, String topologyInstanceId) {
+            int taskIndex, int totalTasks, String topologyInstanceId, String topologyId) {
         _spoutConfig = spoutConfig;
         _connections = connections;// 管理与需要通信的各kafka主机的连接客户端
         _taskIndex = taskIndex;// 本kafkaspout task id
@@ -43,6 +42,7 @@ public class ZkCoordinator implements PartitionCoordinator {
         // 同样需要获取一个DynamicBrokerReader
         _reader = new DynamicBrokersReader(stormConf, brokerConf.brokerZkStr,
                 brokerConf.brokerZkPath, spoutConfig.topic);
+        _sreader = new DynamicSupervisorReader(stormConf, brokerConf.brokerZkStr, topologyId);
 
     }
 
@@ -116,13 +116,12 @@ public class ZkCoordinator implements PartitionCoordinator {
 
     // 根据这个算法映射partitions对spout的分配
     /*
-    private boolean myOwnership(Partition id) {
-        int val = Math.abs(id.host.hashCode() + 23 * id.partition);
-        return val % _totalTasks == _taskIndex;
-    }
-    */
-    // 原有算法有时会导致不均匀
-    // Local版本试图将partition分配到本地spout
+     * private boolean myOwnership(Partition id) { int val =
+     * Math.abs(id.host.hashCode() + 23 * id.partition); return val %
+     * _totalTasks == _taskIndex; }
+     */
+
+    // 原有算法不能很好的均匀分布，希望获得一个只消费本机partition的分布方式
     private boolean myOwnership(Partition id) {
         return id.partition == _taskIndex;
     }
