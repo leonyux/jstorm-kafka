@@ -81,7 +81,6 @@ public class KafkaSpoutLocal extends BaseRichSpout {
         int totalTasks = context
                 .getComponentTasks(context.getThisComponentId()).size();
         
-        String topologyId = context.getTopologyId();
         // 根据传入的主机类型，获取Coordinator，Coordinator主要做什么工作？负责维护本spout需要获取的partition及其对应主机，连接，还有partition
         // manager用来
         // 管理offset
@@ -91,7 +90,7 @@ public class KafkaSpoutLocal extends BaseRichSpout {
                     totalTasks, _uuid);
         } else {
             _coordinator = new ZkCoordinatorLocal(_connections, conf, _spoutConfig,
-                    _state, context.getThisTaskIndex(), totalTasks, _uuid, topologyId);
+                    _state, context, _uuid);
         }
 
         // 注册metric

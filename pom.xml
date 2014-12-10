@@ -186,6 +186,12 @@
 			<version>0.9.6.1</version>
 			<scope>provided</scope>
 		</dependency>
+			<dependency>
+			<groupId>com.alibaba.jstorm</groupId>
+			<artifactId>jstorm-server</artifactId>
+			<version>0.9.6.1</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.alibaba.jstorm</groupId>
 			<artifactId>jstorm-client-extension</artifactId>

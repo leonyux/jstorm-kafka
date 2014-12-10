@@ -124,6 +124,6 @@ public class ZkCoordinator implements PartitionCoordinator {
     // 原有算法有时会导致不均匀
     // Local版本试图将partition分配到本地spout
     private boolean myOwnership(Partition id) {
-        return id.partition == _taskIndex;
+    	return id.partition % _totalTasks == _taskIndex;
     }
 }
