@@ -25,23 +25,13 @@ import storm.kafka.trident.MaxMetric;
 
 import java.util.*;
 
-public class PartitionManagerBatch {
+public class PartitionManagerBatch implements PartitionManager {
 	public static final Logger LOG = LoggerFactory
 			.getLogger(PartitionManagerBatch.class);
 	private final CombinedMetric _fetchAPILatencyMax;
 	private final ReducedMetric _fetchAPILatencyMean;
 	private final CountMetric _fetchAPICallCount;
 	private final CountMetric _fetchAPIMessageCount;
-
-	static class KafkaMessageId {
-		public Partition partition;
-		public long offset;
-
-		public KafkaMessageId(Partition partition, long offset) {
-			this.partition = partition;
-			this.offset = offset;
-		}
-	}
 
 	Long _emittedToOffset;// 已经发送的offset
 	Object _emittedToOffsetLock = new Object();// 使用synchronized
@@ -71,8 +61,7 @@ public class PartitionManagerBatch {
 		_consumer = connections.register(id.host, id.partition);// 注册partition，如果没有建立连接建立连接
 		_state = state;
 		_stormConf = stormConf;
-		_batchSize = Integer.parseInt((String) _stormConf
-				.get("spout.batchsize"));
+		_batchSize = spoutConfig.batchSize;
 
 		String jsonTopologyId = null;
 		Long jsonOffset = null;

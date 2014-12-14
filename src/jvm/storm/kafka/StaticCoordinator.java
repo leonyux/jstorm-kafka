@@ -17,7 +17,7 @@ public class StaticCoordinator implements PartitionCoordinator {
                 .getOrderedPartitions();
         for (int i = taskIndex; i < partitions.size(); i += totalTasks) {
             Partition myPartition = partitions.get(i);
-            _managers.put(myPartition, new PartitionManager(connections,
+            _managers.put(myPartition, new PartitionManagerSingle(connections,
                     topologyInstanceId, state, stormConf, config, myPartition));
 
         }

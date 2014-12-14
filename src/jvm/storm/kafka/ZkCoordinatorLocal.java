@@ -130,9 +130,16 @@ public class ZkCoordinatorLocal implements PartitionCoordinator {
 				// 为新增的partition构建partition manager，partition
 				// manger主要管理向broker获取数据的一些状态，最主要的是offset
 				for (Partition id : newPartitions) {
-					PartitionManager man = new PartitionManager(_connections,
-							_topologyInstanceId, _state, _stormConf,
-							_spoutConfig, id);
+					PartitionManager man = null;
+					if (_spoutConfig.batchMode) {
+						man = new PartitionManagerBatch(_connections,
+								_topologyInstanceId, _state, _stormConf,
+								_spoutConfig, id);
+					} else {
+						man = new PartitionManagerSingle(_connections,
+								_topologyInstanceId, _state, _stormConf,
+								_spoutConfig, id);
+					}
 					_managers.put(id, man);
 				}
 			}
@@ -184,7 +191,8 @@ public class ZkCoordinatorLocal implements PartitionCoordinator {
 				localPartitions.put(partitionId.partition, partitionId);
 			}
 		}
-		List<Integer> partitions = new ArrayList<Integer>(localPartitions.keySet());
+		List<Integer> partitions = new ArrayList<Integer>(
+				localPartitions.keySet());
 		Collections.sort(partitions);
 		int numTasks = localComponentTasks.size();
 		int numPartitions = partitions.size();
