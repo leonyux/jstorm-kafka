@@ -136,7 +136,7 @@ public class PartitionManager {
                     _spoutConfig, toEmit.msg);
             if (tups != null) {
                 for (List<Object> tup : tups) {
-                    // 输出tuple
+                    // 输出tuple，一个offset中的多条消息公用一个MessageId？
                     collector.emit(tup, new KafkaMessageId(_partition,
                             toEmit.offset));
                 }
