@@ -93,9 +93,9 @@ public class ZkCoordinator implements PartitionCoordinator {
                 // 为新增的partition构建partition manager，partition
                 // manger主要管理向broker获取数据的一些状态，最主要的是offset
                 for (Partition id : newPartitions) {
-                    PartitionManager man = new PartitionManagerSingle(_connections,
-                            _topologyInstanceId, _state, _stormConf,
-                            _spoutConfig, id);
+                    PartitionManager man = new PartitionManagerSingle(
+                            _connections, _topologyInstanceId, _state,
+                            _stormConf, _spoutConfig, id);
                     _managers.put(id, man);
                 }
             }
@@ -116,14 +116,13 @@ public class ZkCoordinator implements PartitionCoordinator {
 
     // 根据这个算法映射partitions对spout的分配
     /*
-    private boolean myOwnership(Partition id) {
-        int val = Math.abs(id.host.hashCode() + 23 * id.partition);
-        return val % _totalTasks == _taskIndex;
-    }
-    */
+     * private boolean myOwnership(Partition id) { int val =
+     * Math.abs(id.host.hashCode() + 23 * id.partition); return val %
+     * _totalTasks == _taskIndex; }
+     */
     // 原有算法有时会导致不均匀
     // Local版本试图将partition分配到本地spout
     private boolean myOwnership(Partition id) {
-    	return id.partition % _totalTasks == _taskIndex;
+        return id.partition % _totalTasks == _taskIndex;
     }
 }

@@ -6,33 +6,33 @@ import storm.kafka.KafkaSpout.EmitState;
 import backtype.storm.spout.SpoutOutputCollector;
 
 public interface PartitionManager {
-	public Map getMetricsDataMap();
+    public Map getMetricsDataMap();
 
-	public EmitState next(SpoutOutputCollector collector);
+    public EmitState next(SpoutOutputCollector collector);
 
-	public void ack(Long offset);
+    public void ack(Long offset);
 
-	public void fail(Long offset);
+    public void fail(Long offset);
 
-	public void commit();
+    public void commit();
 
-	public long queryPartitionOffsetLatestTime();
+    public long queryPartitionOffsetLatestTime();
 
-	public long lastCommittedOffset();
+    public long lastCommittedOffset();
 
-	public long lastCompletedOffset();
+    public long lastCompletedOffset();
 
-	public Partition getPartition();
+    public Partition getPartition();
 
-	public void close();
+    public void close();
 
-	static class KafkaMessageId {
-		public Partition partition;
-		public long offset;
+    static class KafkaMessageId {
+        public Partition partition;
+        public long offset;
 
-		public KafkaMessageId(Partition partition, long offset) {
-			this.partition = partition;
-			this.offset = offset;
-		}
-	}
+        public KafkaMessageId(Partition partition, long offset) {
+            this.partition = partition;
+            this.offset = offset;
+        }
+    }
 }

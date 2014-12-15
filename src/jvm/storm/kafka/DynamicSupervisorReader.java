@@ -22,56 +22,55 @@ import java.util.Map;
 
 public class DynamicSupervisorReader {
 
-	public static final Logger LOG = LoggerFactory
-			.getLogger(DynamicSupervisorReader.class);
+    public static final Logger LOG = LoggerFactory
+            .getLogger(DynamicSupervisorReader.class);
 
-	private CuratorFramework _curator;
-	private String _zkStr;
-	private String _zkPath;
-	private String _topologyId;
+    private CuratorFramework _curator;
+    private String _zkStr;
+    private String _zkPath;
+    private String _topologyId;
 
-	public DynamicSupervisorReader(Map conf, String zkStr, String topologyId) {
-		_zkStr = zkStr;
-		_topologyId = topologyId;
-		_zkPath = (String) conf.get(Config.STORM_ZOOKEEPER_ROOT);
-		// try {
-		// 获取zk curator客户端
-		_curator = CuratorFrameworkFactory.newClient(
-				_zkStr,
-				Utils.getInt(conf.get(Config.STORM_ZOOKEEPER_SESSION_TIMEOUT)),
-				15000,
-				new RetryNTimes(Utils.getInt(conf
-						.get(Config.STORM_ZOOKEEPER_RETRY_TIMES)),
-						Utils.getInt(conf
-								.get(Config.STORM_ZOOKEEPER_RETRY_INTERVAL))));
-		_curator.start();
-		// } catch (IOException ex) {
-		// LOG.error("can't connect to zookeeper");
-		// }
-	}
+    public DynamicSupervisorReader(Map conf, String zkStr, String topologyId) {
+        _zkStr = zkStr;
+        _topologyId = topologyId;
+        _zkPath = (String) conf.get(Config.STORM_ZOOKEEPER_ROOT);
+        // try {
+        // 获取zk curator客户端
+        _curator = CuratorFrameworkFactory.newClient(
+                _zkStr,
+                Utils.getInt(conf.get(Config.STORM_ZOOKEEPER_SESSION_TIMEOUT)),
+                15000,
+                new RetryNTimes(Utils.getInt(conf
+                        .get(Config.STORM_ZOOKEEPER_RETRY_TIMES)),
+                        Utils.getInt(conf
+                                .get(Config.STORM_ZOOKEEPER_RETRY_INTERVAL))));
+        _curator.start();
+        // } catch (IOException ex) {
+        // LOG.error("can't connect to zookeeper");
+        // }
+    }
 
-	public void close() {
-		_curator.close();
-	}
+    public void close() {
+        _curator.close();
+    }
 
+    // 获取本jstorm assignment
+    public String assignmentPath() {
+        return _zkPath + Cluster.assignment_path(_topologyId);
+    }
 
-	// 获取本jstorm assignment
-	public String assignmentPath() {
-		return _zkPath + Cluster.assignment_path(_topologyId);
-	}
-
-	public Assignment getAssignmentInfo() {
-		byte[] assignmentData = null;
-		try {
-			assignmentData = _curator.getData().forPath(assignmentPath());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		Object data = Cluster.maybe_deserialize(assignmentData);
-		if (data == null) {
-			return null;
-		}
-		return (Assignment) data;
-	}
+    public Assignment getAssignmentInfo() {
+        byte[] assignmentData = null;
+        try {
+            assignmentData = _curator.getData().forPath(assignmentPath());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        Object data = Cluster.maybe_deserialize(assignmentData);
+        if (data == null) {
+            return null;
+        }
+        return (Assignment) data;
+    }
 
 }

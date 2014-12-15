@@ -29,13 +29,14 @@ public class KafkaSpoutLocal extends BaseRichSpout {
         }
     }
 
-    public static final Logger LOG = LoggerFactory.getLogger(KafkaSpoutLocal.class);
+    public static final Logger LOG = LoggerFactory
+            .getLogger(KafkaSpoutLocal.class);
 
     String _uuid = UUID.randomUUID().toString();
     SpoutConfig _spoutConfig;// spout需要用的kafka配置信息，主要是zk和topic相关
     SpoutOutputCollector _collector;
     PartitionCoordinator _coordinator;// Partition Coordinator协调不
-                                      //同的spout向不同的kafka partion取数据
+                                      // 同的spout向不同的kafka partion取数据
     DynamicPartitionConnections _connections;// Dynamic Partition
                                              // Connection是做什么的
     ZkState _state;// 封装的zk信息和接口
@@ -80,7 +81,7 @@ public class KafkaSpoutLocal extends BaseRichSpout {
         // using TransactionalState like this is a hack
         int totalTasks = context
                 .getComponentTasks(context.getThisComponentId()).size();
-        
+
         // 根据传入的主机类型，获取Coordinator，Coordinator主要做什么工作？负责维护本spout需要获取的partition及其对应主机，连接，还有partition
         // manager用来
         // 管理offset
@@ -89,8 +90,8 @@ public class KafkaSpoutLocal extends BaseRichSpout {
                     _spoutConfig, _state, context.getThisTaskIndex(),
                     totalTasks, _uuid);
         } else {
-            _coordinator = new ZkCoordinatorLocal(_connections, conf, _spoutConfig,
-                    _state, context, _uuid);
+            _coordinator = new ZkCoordinatorLocal(_connections, conf,
+                    _spoutConfig, _state, context, _uuid);
         }
 
         // 注册metric

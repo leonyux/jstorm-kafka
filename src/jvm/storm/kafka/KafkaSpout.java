@@ -36,7 +36,7 @@ public class KafkaSpout extends BaseRichSpout {
     SpoutConfig _spoutConfig;// spout需要用的kafka配置信息，主要是zk和topic相关
     SpoutOutputCollector _collector;
     PartitionCoordinator _coordinator;// Partition Coordinator协调不
-                                      //同的spout向不同的kafka partion取数据
+                                      // 同的spout向不同的kafka partion取数据
     DynamicPartitionConnections _connections;// Dynamic Partition
                                              // Connection是做什么的
     ZkState _state;// 封装的zk信息和接口
@@ -153,7 +153,7 @@ public class KafkaSpout extends BaseRichSpout {
             }
             // 如果状态不为NO_EMITTED则终止循环，一次只从一个分区读数据
             if (state != EmitState.NO_EMITTED) {
-            	emitted = true;
+                emitted = true;
                 break;
             }
         }
@@ -164,13 +164,13 @@ public class KafkaSpout extends BaseRichSpout {
             commit();
         }
         if (emitted == false) {
-			LOG.info("No partition has new msgs, sleep");
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				LOG.warn("Sleep interrupted");
-			}
-		}
+            LOG.info("No partition has new msgs, sleep");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                LOG.warn("Sleep interrupted");
+            }
+        }
     }
 
     @Override

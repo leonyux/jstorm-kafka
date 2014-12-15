@@ -17,7 +17,8 @@ public class KafkaConfig implements Serializable {
     public MultiScheme scheme = new RawMultiScheme();// 这个scheme是做什么的
     public boolean forceFromStart = false;
     public long startOffsetTime = kafka.api.OffsetRequest.EarliestTime();// 获取kafka最早消息的offset，
-                                                                         // 不区分topic, partition?
+                                                                         // 不区分topic,
+                                                                         // partition?
     public boolean useStartOffsetTimeIfOffsetOutOfRange = true;
     public int metricsTimeBucketSizeInSecs = 60;
 
