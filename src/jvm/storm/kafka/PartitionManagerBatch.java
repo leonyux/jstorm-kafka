@@ -48,7 +48,6 @@ public class PartitionManagerBatch implements PartitionManager {
 	DynamicPartitionConnections _connections;
 	ZkState _state;
 	Map _stormConf;
-	int _batchCount = 0;
 	List<MessageAndRealOffset> _batch = null;
 	int _batchSize = 0;
 
@@ -164,6 +163,7 @@ public class PartitionManagerBatch implements PartitionManager {
 	private void fill() {
 		// 从kafka broker获取数据
 		long start = System.nanoTime();
+		int batchCount = 0;
 		synchronized (_emittedToOffsetLock) {// 多线程下_pending和_emittedToOffset一致
 			ByteBufferMessageSet msgs = KafkaUtils.fetchMessages(_spoutConfig,
 					_consumer, _partition, _emittedToOffset);
@@ -181,16 +181,16 @@ public class PartitionManagerBatch implements PartitionManager {
 			}
 			long startOffset = _emittedToOffset;
 			for (MessageAndOffset msg : msgs) {
-				if (_batchCount == 0) {
+				if (batchCount == 0) {
 					_batch = new ArrayList<MessageAndRealOffset>(_batchSize);
 				}
 				_batch.add(new MessageAndRealOffset(msg.message(),
 						_emittedToOffset));
-				_batchCount++;
+				batchCount++;
 				_emittedToOffset = msg.nextOffset();
-				if (_batchCount >= _batchSize) {
+				if (batchCount >= _batchSize) {
 					_waitingToEmit.add(_batch);
-					_batchCount = 0;
+					batchCount = 0;
 					_batch = null;
 					_pending.add(startOffset);
 					LOG.info("Batch Added: from " + startOffset + " to "
@@ -200,9 +200,9 @@ public class PartitionManagerBatch implements PartitionManager {
 				}
 			}
 
-			if (_batchCount != 0) {
+			if (batchCount != 0) {
 				_waitingToEmit.add(_batch);
-				_batchCount = 0;
+				batchCount = 0;
 				_batch = null;
 				_pending.add(startOffset);
 				LOG.info("Tail Batch Added: from " + startOffset + " to "

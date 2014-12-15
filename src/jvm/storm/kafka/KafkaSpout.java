@@ -138,6 +138,7 @@ public class KafkaSpout extends BaseRichSpout {
     public void nextTuple() {
         // 获取本spout负责拉取信息的kafka partition
         List<PartitionManager> managers = _coordinator.getMyManagedPartitions();
+        Boolean emitted = false;
         for (int i = 0; i < managers.size(); i++) {
 
             // in case the number of managers decreased
@@ -152,6 +153,7 @@ public class KafkaSpout extends BaseRichSpout {
             }
             // 如果状态不为NO_EMITTED则终止循环，一次只从一个分区读数据
             if (state != EmitState.NO_EMITTED) {
+            	emitted = true;
                 break;
             }
         }
@@ -161,6 +163,14 @@ public class KafkaSpout extends BaseRichSpout {
         if ((now - _lastUpdateMs) > _spoutConfig.stateUpdateIntervalMs) {
             commit();
         }
+        if (emitted == false) {
+			LOG.info("No partition has new msgs, sleep");
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				LOG.warn("Sleep interrupted");
+			}
+		}
     }
 
     @Override
