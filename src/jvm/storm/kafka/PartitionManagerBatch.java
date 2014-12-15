@@ -6,6 +6,7 @@ import backtype.storm.metric.api.CountMetric;
 import backtype.storm.metric.api.MeanReducer;
 import backtype.storm.metric.api.ReducedMetric;
 import backtype.storm.spout.SpoutOutputCollector;
+import backtype.storm.tuple.Values;
 import backtype.storm.utils.Utils;
 
 import com.google.common.collect.ImmutableMap;
@@ -131,7 +132,7 @@ public class PartitionManagerBatch implements PartitionManager {
 				return EmitState.NO_EMITTED;
 			}
 			long startOffset = batchToEmit.get(0).offset;
-			List<Object> batchTups = new ArrayList<Object>();
+			List<Object> batchTups = new ArrayList<Object>(batchToEmit.size());
 			for (MessageAndRealOffset msg : batchToEmit) {
 				// 对于kafka中的每条消息可以生成多个tuples
 				Iterable<List<Object>> tups = KafkaUtils.generateTuples(
@@ -145,7 +146,7 @@ public class PartitionManagerBatch implements PartitionManager {
 			}
 			if (!batchTups.isEmpty()) {
 				LOG.info("Emit batch from offset: " + startOffset + " with " + batchTups.size() + " tups");
-				collector.emit(batchTups, new KafkaMessageId(_partition,
+				collector.emit(new Values(batchTups), new KafkaMessageId(_partition,
                         startOffset));
 				break;
 			} else {
