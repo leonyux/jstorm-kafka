@@ -167,7 +167,7 @@ public class KafkaSpoutLocal extends BaseRichSpout {
         if (emitted == false) {
             LOG.info("No partition has new msgs, sleep");
             try {
-                Thread.sleep(100);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
                 LOG.warn("Sleep interrupted");
             }

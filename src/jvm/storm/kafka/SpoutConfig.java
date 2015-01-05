@@ -26,4 +26,11 @@ public class SpoutConfig extends KafkaConfig implements Serializable {
         this.batchMode = true;
         this.batchSize = batchSize;
     }
+    public SpoutConfig(BrokerHosts hosts, String topic, String zkRoot,
+            String id, int batchSize, int fetchSize) {
+        // 实际传入的是zkHosts 主题 使用的zk根路径 spoutid
+        this(hosts, topic, zkRoot, id, batchSize);
+        this.fetchSizeBytes = fetchSize;
+        this.bufferSizeBytes = fetchSize;
+    }
 }

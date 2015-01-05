@@ -144,13 +144,13 @@ public class PartitionManagerBatch implements PartitionManager {
                 }
             }
             if (!batchTups.isEmpty()) {
-                LOG.info("Emit batch from offset: " + startOffset + " with "
+                LOG.debug("Emit batch from offset: " + startOffset + " with "
                         + batchTups.size() + " tups");
                 collector.emit(new Values(batchTups), new KafkaMessageId(
                         _partition, startOffset));
                 break;
             } else {
-                LOG.info("Batch from offset: " + startOffset
+                LOG.debug("Batch from offset: " + startOffset
                         + " has no meaningfule values");
                 ack(startOffset);
             }
@@ -178,7 +178,7 @@ public class PartitionManagerBatch implements PartitionManager {
             _fetchAPIMessageCount.incrBy(numMessages);
 
             if (numMessages > 0) {
-                LOG.info("Fetched " + numMessages + " messages from Kafka: "
+                LOG.debug("Fetched " + numMessages + " messages from Kafka: "
                         + _consumer.host() + ":" + _partition.partition);
             }
             long startOffset = _emittedToOffset;
@@ -195,7 +195,7 @@ public class PartitionManagerBatch implements PartitionManager {
                     batchCount = 0;
                     _batch = null;
                     _pending.add(startOffset);
-                    LOG.info("Batch Added: from " + startOffset + " to "
+                    LOG.debug("Batch Added: from " + startOffset + " to "
                             + (_emittedToOffset - 1));
                     startOffset = _emittedToOffset;
 
@@ -207,12 +207,12 @@ public class PartitionManagerBatch implements PartitionManager {
                 batchCount = 0;
                 _batch = null;
                 _pending.add(startOffset);
-                LOG.info("Tail Batch Added: from " + startOffset + " to "
+                LOG.debug("Tail Batch Added: from " + startOffset + " to "
                         + (_emittedToOffset - 1));
             }
 
             if (numMessages > 0) {
-                LOG.info("Added " + numMessages + " messages from Kafka: "
+                LOG.debug("Added " + numMessages + " messages from Kafka: "
                         + _consumer.host() + ":" + _partition.partition
                         + " to internal buffers");
             }
