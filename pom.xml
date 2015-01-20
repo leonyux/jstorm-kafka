@@ -2,14 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<!-- <groupId>net.wurstmeister.storm</groupId> <artifactId>storm-kafka-0.8-plus</artifactId> -->
+
 	<groupId>com.nsfocus.storm</groupId>
-	<artifactId>storm-kafka-0.8-plus-jstorm</artifactId>
+	<artifactId>jstorm-kafka-0.8</artifactId>
 	<packaging>jar</packaging>
-	<version>0.4.0</version>
-	<!-- <name>storm-kafka-0.8-plus</name> <description>Storm module for kafka 
-		&gt; 0.8</description> -->
-	<name>storm-kafka-0.8-plus-jstorm</name>
+
+	<name>jstorm-kafka-0.8</name>
 	<description>JStorm module for kafka &gt; 0.8</description>
 	<licenses>
 		<license>
@@ -19,10 +17,7 @@
 			<comments>A business-friendly OSS license</comments>
 		</license>
 	</licenses>
-	<!-- <url>https://github.com/wurstmeister/storm-kafka-0.8-plus</url> <scm> 
-		<connection>scm:git:git://github.com/wurstmeister/storm-kafka-0.8-plus.git</connection> 
-		<developerConnection>scm:git:ssh://git@github.com/wurstmeister/storm-kafka-0.8-plus.git</developerConnection> 
-		<url>https://github.com/wurstmeister/storm-kafka-0.8-plus</url> </scm> -->
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<scalaVersion>2.9.2</scalaVersion>
@@ -234,4 +229,5 @@
 			</properties>
 		</profile>
 	</profiles>
+	<version>1.0</version>
 </project>

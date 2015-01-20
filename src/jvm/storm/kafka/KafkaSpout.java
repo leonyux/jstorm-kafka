@@ -164,9 +164,9 @@ public class KafkaSpout extends BaseRichSpout {
             commit();
         }
         if (emitted == false) {
-            LOG.info("No partition has new msgs, sleep");
+            LOG.debug("No partition has new msgs, sleep");
             try {
-                Thread.sleep(100);
+                Thread.sleep(300);
             } catch (InterruptedException e) {
                 LOG.warn("Sleep interrupted");
             }
