@@ -35,6 +35,7 @@ public class ZkCoordinatorLocal implements PartitionCoordinator {
     IMetricsContext _metricsContext;
     String _hostname;
     String _hostIp;
+    String _topic;
     Boolean _localMode;
     String _topologyId;
     List<Integer> _tasks;
@@ -59,6 +60,7 @@ public class ZkCoordinatorLocal implements PartitionCoordinator {
         // 同样需要获取一个DynamicBrokerReader
         _reader = new DynamicBrokersReader(stormConf, brokerConf.brokerZkStr,
                 brokerConf.brokerZkPath, spoutConfig.topic);
+        _topic = spoutConfig.topic;
         _sreader = new DynamicSupervisorReader(stormConf,
                 brokerConf.brokerZkStr, _topologyId);
         try {
@@ -105,6 +107,7 @@ public class ZkCoordinatorLocal implements PartitionCoordinator {
                     }
                 }
             }
+            LOG.info("My topic: " + _topic);
             LOG.info("My partition managers: " + mine.toString());
 
             synchronized (_managers) {// 锁定_manager结构，在jstorm下支持nextTuple和ack、fail的并发

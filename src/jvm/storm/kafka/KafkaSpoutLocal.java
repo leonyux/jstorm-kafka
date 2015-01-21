@@ -165,7 +165,7 @@ public class KafkaSpoutLocal extends BaseRichSpout {
             commit();
         }
         if (emitted == false) {
-            LOG.info("No partition has new msgs, sleep");
+            LOG.debug("No partition has new msgs, sleep");
             try {
                 Thread.sleep(200);
             } catch (InterruptedException e) {
